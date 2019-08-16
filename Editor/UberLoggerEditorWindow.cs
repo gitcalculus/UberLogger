@@ -21,7 +21,7 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
 
     static public void Init()
     {
-        var window = ScriptableObject.CreateInstance<UberLoggerEditorWindow>();
+        UberLoggerEditorWindow window = ScriptableObject.CreateInstance<UberLoggerEditorWindow>();
         window.Show();
         window.position = new Rect(200,200,400,300);
         window.CurrentTopPaneHeight = window.position.height/2;
@@ -87,8 +87,10 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
     public string ExtractLogListToString()
     {
         string result = "";
-        foreach (CountedLog log in RenderLogs)
+        //foreach (CountedLog log in RenderLogs)
+        for (int i = 0, max = RenderLogs.Count; i < max; ++i)
         {
+            CountedLog log = RenderLogs[i];
             UberLogger.LogInfo logInfo = log.Log;
             result += logInfo.GetRelativeTimeStampAsString() + ": " + logInfo.Severity + ": " + logInfo.Message + "\n";
         }
@@ -103,13 +105,13 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
         string result = ""; 
         if (RenderLogs.Count > 0 && SelectedRenderLog >= 0) 
         { 
-            var countedLog = RenderLogs[SelectedRenderLog]; 
-            var log = countedLog.Log; 
+            CountedLog countedLog = RenderLogs[SelectedRenderLog]; 
+            LogInfo log = countedLog.Log; 
  
             for (int c1 = 0; c1 < log.Callstack.Count; c1++) 
             { 
-                var frame = log.Callstack[c1]; 
-                var methodName = frame.GetFormattedMethodName(); 
+                LogStackFrame frame = log.Callstack[c1]; 
+                string methodName = frame.GetFormattedMethodName(); 
                 result += methodName + "\n"; 
             } 
         } 
@@ -159,7 +161,7 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
         GUIStyle unityLogLineOdd = null;
         GUIStyle unitySmallLogLine = null;
         
-        foreach(var style in GUI.skin.customStyles)
+        foreach(GUIStyle style in GUI.skin.customStyles)
         {
             if     (style.name=="CN EntryBackEven")  unityLogLineEven = style;
             else if(style.name=="CN EntryBackOdd")   unityLogLineOdd = style;
@@ -215,15 +217,15 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
     //Some helper functions to draw buttons that are only as big as their text
     bool ButtonClamped(string text, GUIStyle style, out Vector2 size)
     {
-        var content = new GUIContent(text);
+        GUIContent content = new GUIContent(text);
         size = style.CalcSize(content);
-        var rect = new Rect(DrawPos, size);
+        Rect rect = new Rect(DrawPos, size);
         return GUI.Button(rect, text, style);
     }
 
     bool ToggleClamped(bool state, string text, GUIStyle style, out Vector2 size)
     {
-        var content = new GUIContent(text);
+        GUIContent content = new GUIContent(text);
         return ToggleClamped(state, content, style, out size);
     }
 
@@ -236,7 +238,7 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
 
     void LabelClamped(string text, GUIStyle style, out Vector2 size)
     {
-        var content = new GUIContent(text);
+        GUIContent content = new GUIContent(text);
         size = style.CalcSize(content);
 
         Rect drawRect = new Rect(DrawPos, size);
@@ -248,7 +250,7 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
     /// </summary>
     void DrawToolbar()
     {
-        var toolbarStyle = EditorStyles.toolbarButton;
+        GUIStyle toolbarStyle = EditorStyles.toolbarButton;
 
         Vector2 elementSize;
         if(ButtonClamped("Clear", EditorStyles.toolbarButton, out elementSize))
@@ -260,21 +262,21 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
         DrawPos.x += elementSize.x;
         EditorLogger.PauseOnError  = ToggleClamped(EditorLogger.PauseOnError, "Error Pause", EditorStyles.toolbarButton, out elementSize);
         DrawPos.x += elementSize.x;
-        var showTimes = ToggleClamped(ShowTimes, "Times", EditorStyles.toolbarButton, out elementSize);
+        bool showTimes = ToggleClamped(ShowTimes, "Times", EditorStyles.toolbarButton, out elementSize);
         if(showTimes!=ShowTimes)
         {
             MakeDirty = true;
             ShowTimes = showTimes;
         }
         DrawPos.x += elementSize.x;
-        var showChannels = ToggleClamped(ShowChannels, "Channels", EditorStyles.toolbarButton, out elementSize);
+        bool showChannels = ToggleClamped(ShowChannels, "Channels", EditorStyles.toolbarButton, out elementSize);
         if (showChannels != ShowChannels)
         {
             MakeDirty = true;
             ShowChannels = showChannels;
         }
         DrawPos.x += elementSize.x;
-        var collapse = ToggleClamped(Collapse, "Collapse", EditorStyles.toolbarButton, out elementSize);
+        bool collapse = ToggleClamped(Collapse, "Collapse", EditorStyles.toolbarButton, out elementSize);
         if(collapse!=Collapse)
         {
             MakeDirty = true;
@@ -286,9 +288,9 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
         ScrollFollowMessages = ToggleClamped(ScrollFollowMessages, "Follow", EditorStyles.toolbarButton, out elementSize);
         DrawPos.x += elementSize.x;
 
-        var errorToggleContent = new GUIContent(EditorLogger.NoErrors.ToString(), SmallErrorIcon);
-        var warningToggleContent = new GUIContent(EditorLogger.NoWarnings.ToString(), SmallWarningIcon);
-        var messageToggleContent = new GUIContent(EditorLogger.NoMessages.ToString(), SmallMessageIcon);
+        GUIContent errorToggleContent = new GUIContent(EditorLogger.NoErrors.ToString(), SmallErrorIcon);
+        GUIContent warningToggleContent = new GUIContent(EditorLogger.NoWarnings.ToString(), SmallWarningIcon);
+        GUIContent messageToggleContent = new GUIContent(EditorLogger.NoMessages.ToString(), SmallMessageIcon);
 
         float totalErrorButtonWidth = toolbarStyle.CalcSize(errorToggleContent).x + toolbarStyle.CalcSize(warningToggleContent).x + toolbarStyle.CalcSize(messageToggleContent).x;
 
@@ -298,11 +300,11 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
             DrawPos.x = errorIconX;
         }
 
-        var showErrors = ToggleClamped(ShowErrors, errorToggleContent, toolbarStyle, out elementSize);
+        bool showErrors = ToggleClamped(ShowErrors, errorToggleContent, toolbarStyle, out elementSize);
         DrawPos.x += elementSize.x;
-        var showWarnings = ToggleClamped(ShowWarnings, warningToggleContent, toolbarStyle, out elementSize);
+        bool showWarnings = ToggleClamped(ShowWarnings, warningToggleContent, toolbarStyle, out elementSize);
         DrawPos.x += elementSize.x;
-        var showMessages = ToggleClamped(ShowMessages, messageToggleContent, toolbarStyle, out elementSize);
+        bool showMessages = ToggleClamped(ShowMessages, messageToggleContent, toolbarStyle, out elementSize);
         DrawPos.x += elementSize.x;
 
         DrawPos.y += elementSize.y;
@@ -324,7 +326,7 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
     /// </summary>
     void DrawChannels()
     {
-        var channels = GetChannels();
+        List<string> channels = GetChannels();
         int currentChannelIndex = 0;
         for(int c1=0; c1<channels.Count; c1++)
         {
@@ -335,9 +337,9 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
             }
         }
 
-        var content = new GUIContent("S");
-        var size = GUI.skin.button.CalcSize(content);
-        var drawRect = new Rect(DrawPos, new Vector2(position.width, size.y));
+        GUIContent content = new GUIContent("S");
+        Vector2 size = GUI.skin.button.CalcSize(content);
+        Rect drawRect = new Rect(DrawPos, new Vector2(position.width, size.y));
         currentChannelIndex = GUI.SelectionGrid(drawRect, currentChannelIndex, channels.ToArray(), channels.Count);
         if(CurrentChannel!=channels[currentChannelIndex])
         {
@@ -374,7 +376,7 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
     /// </summary>
     GUIContent GetLogLineGUIContent(UberLogger.LogInfo log, bool showTimes, bool showChannels)
     {
-        var showMessage = log.Message;
+        string showMessage = log.Message;
         
         //Make all messages single line
         showMessage = showMessage.Replace(UberLogger.Logger.UnityInternalNewLine, " ");
@@ -384,11 +386,11 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
         //     0.000 : message            <-- Time shown, channel hidden
         //     [channel] : message        <-- Channel shown, time hidden
         //     message                    <-- Both channel and time hidden
-        var showChannel = showChannels && !string.IsNullOrEmpty(log.Channel);
-        var channelMessage = showChannel ? string.Format("[{0}]", log.Channel) : "";
-        var channelTimeSeparator = (showChannel && showTimes) ? " " : "";
-        var timeMessage = showTimes ? string.Format("{0}", log.GetRelativeTimeStampAsString()) : "";
-        var prefixMessageSeparator = (showChannel || showTimes) ? " : " : "";
+        bool showChannel = showChannels && !string.IsNullOrEmpty(log.Channel);
+        string channelMessage = showChannel ? string.Format("[{0}]", log.Channel) : "";
+        string channelTimeSeparator = (showChannel && showTimes) ? " " : "";
+        string timeMessage = showTimes ? string.Format("{0}", log.GetRelativeTimeStampAsString()) : "";
+        string prefixMessageSeparator = (showChannel || showTimes) ? " : " : "";
         showMessage = string.Format("{0}{1}{2}{3}{4}",
                 channelMessage,
                 channelTimeSeparator,
@@ -397,7 +399,7 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
                 showMessage
             );
 
-        var content = new GUIContent(showMessage, GetIconForLog(log));
+        GUIContent content = new GUIContent(showMessage, GetIconForLog(log));
         return content;
     }
 
@@ -406,7 +408,7 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
     /// </summary>
     public void DrawLogList(float height)
     {
-        var oldColor = GUI.backgroundColor;
+        Color oldColor = GUI.backgroundColor;
 
 
         float buttonY = 0;
@@ -418,8 +420,8 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
             filterRegex = new Regex(FilterRegex);
         }
 
-        var collapseBadgeStyle = EditorStyles.miniButton;
-        var logLineStyle = EntryStyleBackEven;
+        GUIStyle collapseBadgeStyle = EditorStyles.miniButton;
+        GUIStyle logLineStyle = EntryStyleBackEven;
 
         // If we've been marked dirty, we need to recalculate the elements to be displayed
         if(Dirty)
@@ -432,14 +434,16 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
             //When collapsed, count up the unique elements and use those to display
             if(Collapse)
             {
-                var collapsedLines = new Dictionary<string, CountedLog>();
-                var collapsedLinesList = new List<CountedLog>();
+                Dictionary<string, CountedLog> collapsedLines = new Dictionary<string, CountedLog>();
+                List<CountedLog> collapsedLinesList = new List<CountedLog>();
 
-                foreach(var log in CurrentLogList)
+                // foreach(var log in CurrentLogList)
+                for (int i = 0, max = CurrentLogList.Count; i < max; i++)
                 {
+                    LogInfo log = CurrentLogList[i];
                     if(ShouldShowLog(filterRegex, log))
                     {
-                        var matchString = log.Message + "!$" + log.Severity + "!$" + log.Channel;
+                        string matchString = log.Message + "!$" + log.Severity + "!$" + log.Channel;
 
                         CountedLog countedLog;
                         if(collapsedLines.TryGetValue(matchString, out countedLog))
@@ -455,29 +459,33 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
                     }
                 }
 
-                foreach(var countedLog in collapsedLinesList)
+                //foreach(var countedLog in collapsedLinesList)
+                for (int i = 0, max = collapsedLinesList.Count; i < max; ++i)
                 {
-                    var content = GetLogLineGUIContent(countedLog.Log, ShowTimes, ShowChannels);
+                    CountedLog countedLog = collapsedLinesList[i];
+                    GUIContent content = GetLogLineGUIContent(countedLog.Log, ShowTimes, ShowChannels);
                     RenderLogs.Add(countedLog);
-                    var logLineSize = logLineStyle.CalcSize(content);
+                    Vector2 logLineSize = logLineStyle.CalcSize(content);
                     LogListMaxWidth = Mathf.Max(LogListMaxWidth, logLineSize.x);
                     LogListLineHeight = Mathf.Max(LogListLineHeight, logLineSize.y);
 
-                    var collapseBadgeContent = new GUIContent(countedLog.Count.ToString());
-                    var collapseBadgeSize = collapseBadgeStyle.CalcSize(collapseBadgeContent);
+                    GUIContent collapseBadgeContent = new GUIContent(countedLog.Count.ToString());
+                    Vector2 collapseBadgeSize = collapseBadgeStyle.CalcSize(collapseBadgeContent);
                     CollapseBadgeMaxWidth = Mathf.Max(CollapseBadgeMaxWidth, collapseBadgeSize.x);
                 }
             }
             //If we're not collapsed, display everything in order
             else
             {
-                foreach(var log in CurrentLogList)
+                //foreach(var log in CurrentLogList)
+                for (int i = 0, max = CurrentLogList.Count; i < max; i++)
                 {
+                    LogInfo log = CurrentLogList[i];
                     if(ShouldShowLog(filterRegex, log))
                     {
-                        var content = GetLogLineGUIContent(log, ShowTimes, ShowChannels);
+                        GUIContent content = GetLogLineGUIContent(log, ShowTimes, ShowChannels);
                         RenderLogs.Add(new CountedLog(log, 1));
-                        var logLineSize = logLineStyle.CalcSize(content);
+                        Vector2 logLineSize = logLineStyle.CalcSize(content);
                         LogListMaxWidth = Mathf.Max(LogListMaxWidth, logLineSize.x);
                         LogListLineHeight = Mathf.Max(LogListLineHeight, logLineSize.y);
                     }
@@ -487,10 +495,10 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
             LogListMaxWidth += CollapseBadgeMaxWidth;
         }
 
-        var scrollRect = new Rect(DrawPos, new Vector2(position.width, height));
+        Rect scrollRect = new Rect(DrawPos, new Vector2(position.width, height));
         float lineWidth = Mathf.Max(LogListMaxWidth, scrollRect.width);
 
-        var contentRect = new Rect(0, 0, lineWidth, RenderLogs.Count*LogListLineHeight);
+        Rect contentRect = new Rect(0, 0, lineWidth, RenderLogs.Count*LogListLineHeight);
         Vector2 lastScrollPosition = LogListScrollPosition;
         LogListScrollPosition = GUI.BeginScrollView(scrollRect, LogListScrollPosition, contentRect);
 
@@ -516,8 +524,8 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
 
         for(int renderLogIndex=firstRenderLogIndex; renderLogIndex<lastRenderLogIndex; renderLogIndex++)
         {
-            var countedLog = RenderLogs[renderLogIndex];
-            var log = countedLog.Log;
+            CountedLog countedLog = RenderLogs[renderLogIndex];
+            LogInfo log = countedLog.Log;
             logLineStyle = (renderLogIndex%2==0) ? EntryStyleBackEven : EntryStyleBackOdd;
             if(renderLogIndex==SelectedRenderLog)
             {
@@ -529,8 +537,8 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
             }
                 
             //Make all messages single line
-            var content = GetLogLineGUIContent(log, ShowTimes, ShowChannels);
-            var drawRect = new Rect(logLineX, buttonY, contentRect.width, LogListLineHeight);
+            GUIContent content = GetLogLineGUIContent(log, ShowTimes, ShowChannels);
+            Rect drawRect = new Rect(logLineX, buttonY, contentRect.width, LogListLineHeight);
             if(GUI.Button(drawRect, content, logLineStyle))
             {
                 //Select a message, or jump to source if it's double-clicked
@@ -561,7 +569,7 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
 
 
                 //Always select the game object that is the source of this message
-                var go = log.Source as GameObject;
+                GameObject go = log.Source as GameObject;
                 if(go!=null)
                 {
                     Selection.activeGameObject = go;
@@ -570,9 +578,9 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
 
             if(Collapse)
             {
-                var collapseBadgeContent = new GUIContent(countedLog.Count.ToString());
-                var collapseBadgeSize = collapseBadgeStyle.CalcSize(collapseBadgeContent);
-                var collapseBadgeRect = new Rect(0, buttonY, collapseBadgeSize.x, collapseBadgeSize.y);
+                GUIContent collapseBadgeContent = new GUIContent(countedLog.Count.ToString());
+                Vector2 collapseBadgeSize = collapseBadgeStyle.CalcSize(collapseBadgeContent);
+                Rect collapseBadgeRect = new Rect(0, buttonY, collapseBadgeSize.x, collapseBadgeSize.y);
                 GUI.Button(collapseBadgeRect, collapseBadgeContent, collapseBadgeStyle);
             }
             buttonY += LogListLineHeight;
@@ -596,23 +604,23 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
     /// </summary>
     public void DrawLogDetails()
     {
-        var oldColor = GUI.backgroundColor;
+        Color oldColor = GUI.backgroundColor;
 
         SelectedRenderLog = Mathf.Clamp(SelectedRenderLog, 0, CurrentLogList.Count);
 
         if(RenderLogs.Count>0 && SelectedRenderLog>=0)
         {
-            var countedLog = RenderLogs[SelectedRenderLog];
-            var log = countedLog.Log;
-            var logLineStyle = EntryStyleBackEven;
+            CountedLog countedLog = RenderLogs[SelectedRenderLog];
+            LogInfo log = countedLog.Log;
+            GUIStyle logLineStyle = EntryStyleBackEven;
 
-            var sourceStyle = new GUIStyle(GUI.skin.textArea);
+            GUIStyle sourceStyle = new GUIStyle(GUI.skin.textArea);
             sourceStyle.richText = true;
 
-            var drawRect = new Rect(DrawPos, new Vector2(position.width-DrawPos.x, position.height-DrawPos.y));
+            Rect drawRect = new Rect(DrawPos, new Vector2(position.width-DrawPos.x, position.height-DrawPos.y));
 
             //Work out the content we need to show, and the sizes
-            var detailLines = new List<GUIContent>();
+            List<GUIContent> detailLines = new List<GUIContent>();
             float contentHeight = 0;
             float contentWidth = 0;
             float lineHeight = 0;
@@ -620,23 +628,23 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
 
             for(int c1=0; c1<log.Callstack.Count; c1++)
             {
-                var frame = log.Callstack[c1];
-                var methodName = frame.GetFormattedMethodNameWithFileName();
+                LogStackFrame frame = log.Callstack[c1];
+                string methodName = frame.GetFormattedMethodNameWithFileName();
                 if(!String.IsNullOrEmpty(methodName))
                 {
-                    var content = new GUIContent(methodName);
+                    GUIContent content = new GUIContent(methodName);
                     detailLines.Add(content);
 
-                    var contentSize = logLineStyle.CalcSize(content);
+                    Vector2 contentSize = logLineStyle.CalcSize(content);
                     contentHeight += contentSize.y;
                     lineHeight = Mathf.Max(lineHeight, contentSize.y);
                     contentWidth = Mathf.Max(contentSize.x, contentWidth);
                     if(ShowFrameSource && c1==SelectedCallstackFrame)
                     {
-                        var sourceContent = GetFrameSourceGUIContent(frame);
+                        GUIContent sourceContent = GetFrameSourceGUIContent(frame);
                         if(sourceContent!=null)
                         {
-                            var sourceSize = sourceStyle.CalcSize(sourceContent);
+                            Vector2 sourceSize = sourceStyle.CalcSize(sourceContent);
                             contentHeight += sourceSize.y;
                             contentWidth = Mathf.Max(sourceSize.x, contentWidth);
                         }
@@ -645,14 +653,14 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
             }
 
             //Render the content
-            var contentRect = new Rect(0, 0, Mathf.Max(contentWidth, drawRect.width), contentHeight);
+            Rect contentRect = new Rect(0, 0, Mathf.Max(contentWidth, drawRect.width), contentHeight);
 
             LogDetailsScrollPosition = GUI.BeginScrollView(drawRect, LogDetailsScrollPosition, contentRect);
 
             float lineY = 0;
             for(int c1=0; c1<detailLines.Count; c1++)
             {
-                var lineContent = detailLines[c1];
+                GUIContent lineContent = detailLines[c1];
                 if(lineContent!=null)
                 {
                     logLineStyle = (c1%2==0) ? EntryStyleBackEven : EntryStyleBackOdd;
@@ -665,8 +673,8 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
                         GUI.backgroundColor = Color.white;
                     }
                     
-                    var frame = log.Callstack[c1];
-                    var lineRect = new Rect(0, lineY, contentRect.width, lineHeight);
+                    LogStackFrame frame = log.Callstack[c1];
+                    Rect lineRect = new Rect(0, lineY, contentRect.width, lineHeight);
 
                     // Handle clicks on the stack frame
                     if(GUI.Button(lineRect, lineContent, logLineStyle))
@@ -704,11 +712,11 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
                     {
                         GUI.backgroundColor = Color.white;
 
-                        var sourceContent = GetFrameSourceGUIContent(frame);
+                        GUIContent sourceContent = GetFrameSourceGUIContent(frame);
                         if(sourceContent!=null)
                         {
-                            var sourceSize = sourceStyle.CalcSize(sourceContent);
-                            var sourceRect = new Rect(0, lineY, contentRect.width, sourceSize.y);
+                            Vector2 sourceSize = sourceStyle.CalcSize(sourceContent);
+                            Rect sourceRect = new Rect(0, lineY, contentRect.width, sourceSize.y);
 
                             GUI.Label(sourceRect, sourceContent, sourceStyle);
                             lineY += sourceSize.y;
@@ -744,8 +752,8 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
     {
         if (frame.FileName != null)
         {
-            var osFileName = UberLogger.Logger.ConvertDirectorySeparatorsFromUnityToOS(frame.FileName);
-            var filename = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), osFileName);
+            string osFileName = UberLogger.Logger.ConvertDirectorySeparatorsFromUnityToOS(frame.FileName);
+            string filename = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), osFileName);
             if (System.IO.File.Exists(filename))
             {
                 if (UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(filename, frame.LineNumber))
@@ -758,10 +766,10 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
 
     GUIContent GetFrameSourceGUIContent(LogStackFrame frame)
     {
-        var source = GetSourceForFrame(frame);
+        string source = GetSourceForFrame(frame);
         if(!String.IsNullOrEmpty(source))
         {
-            var content = new GUIContent(source);
+            GUIContent content = new GUIContent(source);
             return content;
         }
         return null;
@@ -785,7 +793,7 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
         }
         DrawPos.x += size.x;
 
-        var drawRect = new Rect(DrawPos, new Vector2(position.width-DrawPos.x, size.y));
+        Rect drawRect = new Rect(DrawPos, new Vector2(position.width-DrawPos.x, size.y));
         filterRegex = EditorGUI.TextArea(drawRect, FilterRegex);
 
         if(clearFilter)
@@ -811,12 +819,12 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
             CurrentChannels = EditorLogger.CopyChannels();
         }
 
-        var categories = CurrentChannels;
+        List<string> categories = CurrentChannels;
         
-        var channelList = new List<string>();
+        List<string> channelList = new List<string>();
         channelList.Add("All");
         channelList.Add("No Channel");
-        channelList.AddRange(categories);
+        channelList.AddRange(categories.ToArray());
         return channelList;
     }
 
@@ -828,7 +836,7 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
         //Set up the resize collision rect
         CursorChangeRect = new Rect(0, CurrentTopPaneHeight, position.width, DividerHeight);
 
-        var oldColor = GUI.color;
+        Color oldColor = GUI.color;
         GUI.color = SizerLineColour; 
         GUI.DrawTexture(CursorChangeRect, EditorGUIUtility.whiteTexture);
         GUI.color = oldColor;
@@ -874,8 +882,8 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
             return "";
         }
 
-        var osFileName = UberLogger.Logger.ConvertDirectorySeparatorsFromUnityToOS(frame.FileName);
-        var filename = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), osFileName);
+        string osFileName = UberLogger.Logger.ConvertDirectorySeparatorsFromUnityToOS(frame.FileName);
+        string filename = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), osFileName);
         if (!System.IO.File.Exists(filename))
         {
             return "";
@@ -883,9 +891,9 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
 
         int lineNumber = frame.LineNumber-1;
         int linesAround = 3;
-        var lines = System.IO.File.ReadAllLines(filename);
-        var firstLine = Mathf.Max(lineNumber-linesAround, 0);
-        var lastLine = Mathf.Min(lineNumber+linesAround+1, lines.Count());
+        string[] lines = System.IO.File.ReadAllLines(filename);
+        int firstLine = Mathf.Max(lineNumber-linesAround, 0);
+        int lastLine = Mathf.Min(lineNumber+linesAround+1, lines.Length);
 
         SourceLines = "";
         if(firstLine!=0)
@@ -901,7 +909,7 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
             }
             SourceLines += str;
         }
-        if(lastLine!=lines.Count())
+        if(lastLine!=lines.Length)
         {
             SourceLines += "...\n";
         }
@@ -949,7 +957,7 @@ public class UberLoggerEditorWindow : EditorWindow, UberLoggerEditor.ILoggerWind
     UberLoggerEditor EditorLogger;
 
     List<UberLogger.LogInfo> CurrentLogList = new List<UberLogger.LogInfo>();
-    HashSet<string> CurrentChannels = new HashSet<string>();
+    List<string> CurrentChannels = new List<string>();
 
     //Standard unity pro colours
     Color SizerLineColour;

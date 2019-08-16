@@ -16,7 +16,7 @@ using UberLogger;
 public class UberLoggerEditor : ScriptableObject, UberLogger.ILogger
 {
     List<LogInfo> LogInfo = new List<LogInfo>();
-    HashSet<string> Channels = new HashSet<string>();
+    List<string> Channels = new List<string>();
 
     public bool PauseOnError = false;
     public bool ClearOnPlay = true;
@@ -27,7 +27,7 @@ public class UberLoggerEditor : ScriptableObject, UberLogger.ILogger
 
     static public UberLoggerEditor Create()
     {
-        var editorDebug = ScriptableObject.FindObjectOfType<UberLoggerEditor>();
+        UberLoggerEditor editorDebug = ScriptableObject.FindObjectOfType<UberLoggerEditor>();
 
         if(editorDebug==null)
         {
@@ -43,7 +43,9 @@ public class UberLoggerEditor : ScriptableObject, UberLogger.ILogger
 
     public void OnEnable()
     {
-        EditorApplication.playModeStateChanged += OnPlaymodeStateChanged;
+        // EditorApplication.playModeStateChanged += OnPlaymodeStateChanged;
+
+        EditorApplication.playmodeStateChanged = OnPlaymodeStateChanged;
 
         //Make this scriptable object persist between Play sessions
         hideFlags = HideFlags.HideAndDontSave;
@@ -64,7 +66,7 @@ public class UberLoggerEditor : ScriptableObject, UberLogger.ILogger
         WasPlaying = EditorApplication.isPlayingOrWillChangePlaymode;
     }
     
-    void OnPlaymodeStateChanged(PlayModeStateChange obj)
+    void OnPlaymodeStateChanged()
     {
         ProcessOnStartClear();
     }
@@ -116,8 +118,10 @@ public class UberLoggerEditor : ScriptableObject, UberLogger.ILogger
             NoMessages++;
         }
 
-        foreach(var window in Windows)
+        //foreach(var window in Windows)
+        for (int i = 0, max = Windows.Count; i < max; ++i)
         {
+            ILoggerWindow window = Windows[i];
             window.OnLogChange(logInfo);
         }
 
@@ -137,8 +141,10 @@ public class UberLoggerEditor : ScriptableObject, UberLogger.ILogger
             NoErrors = 0;
             NoMessages = 0;
 
-            foreach(var window in Windows)
+            //foreach(var window in Windows)
+            for (int i = 0, max = Windows.Count; i < max; ++i)
             {
+                ILoggerWindow window = Windows[i];
                 window.OnLogChange(null);
             }
         }
@@ -148,15 +154,15 @@ public class UberLoggerEditor : ScriptableObject, UberLogger.ILogger
     {
         lock(this)
         {
-            return new List<LogInfo>(LogInfo);
+            return new List<LogInfo>(LogInfo.ToArray());
         }
     }
 
-    public HashSet<string> CopyChannels()
+    public List<string> CopyChannels()
     {
         lock(this)
         {
-            return new HashSet<string>(Channels);
+            return new List<string>(Channels.ToArray());
         }
     }
 

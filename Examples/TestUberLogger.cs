@@ -14,7 +14,7 @@ public class TestUberLogger : MonoBehaviour
         TestThread.Start();
 
         //Test an internal .Net OOB error
-        var t = new List<int>();
+        List<int> t = new List<int>();
         t[0] = 5;
     }
 

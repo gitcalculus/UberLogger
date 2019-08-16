@@ -10,15 +10,20 @@ public class UberLoggerFile : UberLogger.ILogger
     private StreamWriter LogFileWriter;
     private bool IncludeCallStacks;
 
+    public UberLoggerFile(string filename) : this(filename, true)
+    {
+
+    }
+
     /// <summary>
     /// Constructor. Make sure to add it to UberLogger via Logger.AddLogger();
     /// filename is relative to Application.persistentDataPath
     /// if includeCallStacks is true it will dump out the full callstack for all logs, at the expense of big log files.
     /// </summary>
-    public UberLoggerFile(string filename, bool includeCallStacks = true)
+    public UberLoggerFile(string filename, bool includeCallStacks)
     {
         IncludeCallStacks = includeCallStacks;
-        var fileLogPath = System.IO.Path.Combine(Application.persistentDataPath, filename);
+        string fileLogPath = System.IO.Path.Combine(Application.persistentDataPath, filename);
         Debug.Log("Initialising file logging to " + fileLogPath);
         LogFileWriter = new StreamWriter(fileLogPath, false);
         LogFileWriter.AutoFlush = true;
@@ -31,8 +36,10 @@ public class UberLoggerFile : UberLogger.ILogger
             LogFileWriter.WriteLine(logInfo.Message);
             if(IncludeCallStacks && logInfo.Callstack.Count>0)
             {
-                foreach(var frame in logInfo.Callstack)
+                //foreach(var frame in logInfo.Callstack)
+                for (int i = 0, max = logInfo.Callstack.Count; i < max; ++i)
                 {
+                    LogStackFrame frame = logInfo.Callstack[i];
                     LogFileWriter.WriteLine(frame.GetFormattedMethodNameWithFileName());
                 }
                 LogFileWriter.WriteLine();

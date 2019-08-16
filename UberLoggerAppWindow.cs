@@ -58,7 +58,7 @@ public class UberLoggerAppWindow : MonoBehaviour, UberLogger.ILogger
         CurrentTopPaneHeight = Screen.height*SizerStartHeightRatio;
     }
 
-    public bool ShowWindow { get; set; }
+    public bool ShowWindow;
     public Texture2D ButtonTexture;
     public Texture2D ErrorButtonTexture;
     public Vector2 ButtonPosition;
@@ -72,7 +72,7 @@ public class UberLoggerAppWindow : MonoBehaviour, UberLogger.ILogger
         GUI.skin = Skin;
         if(ShowWindow)
         {
-            var oldGUIColor = GUI.color;
+            Color oldGUIColor = GUI.color;
             GUI.color = GUIColour;
             WindowRect = new Rect(0,0, Screen.width/2, Screen.height);
             //Set up the basic style, based on the Unity defaults
@@ -102,7 +102,7 @@ public class UberLoggerAppWindow : MonoBehaviour, UberLogger.ILogger
         {
             buttonTex = ErrorButtonTexture;
         }
-        var buttonPos = ButtonPosition;
+        Vector2 buttonPos = ButtonPosition;
         buttonPos.x*=Screen.width;
         buttonPos.y*=Screen.height;
         if(buttonPos.x+ButtonSize.x> Screen.width)
@@ -113,8 +113,8 @@ public class UberLoggerAppWindow : MonoBehaviour, UberLogger.ILogger
         {
             buttonPos.y = Screen.height-ButtonSize.y;
         }
-        var buttonRect = new Rect(buttonPos.x, buttonPos.y, ButtonSize.x, ButtonSize.y);
-        var style = new GUIStyle();
+        Rect buttonRect = new Rect(buttonPos.x, buttonPos.y, ButtonSize.x, ButtonSize.y);
+        GUIStyle style = new GUIStyle();
 
         if(GUI.Button(buttonRect, buttonTex, style))
         {
@@ -128,7 +128,7 @@ public class UberLoggerAppWindow : MonoBehaviour, UberLogger.ILogger
     void DrawWindow(int windowID)
     {
         // GUI.DragWindow(new Rect(0, 0, 10000, 20));
-        var oldGUIColour = GUI.color;
+        Color oldGUIColour = GUI.color;
         GUI.color = GUIColour;
         GUILayout.BeginVertical(GUILayout.Height(CurrentTopPaneHeight-GUI.skin.window.padding.top), GUILayout.MinHeight(100));
         DrawToolbar();
@@ -174,7 +174,7 @@ public class UberLoggerAppWindow : MonoBehaviour, UberLogger.ILogger
     /// </summary>
     void DrawToolbar()
     {
-        var toolbarStyle = GUI.skin.customStyles[3];
+        GUIStyle toolbarStyle = GUI.skin.customStyles[3];
         GUILayout.BeginHorizontal();
         if(ButtonClamped("Clear", toolbarStyle))
         {
@@ -183,12 +183,12 @@ public class UberLoggerAppWindow : MonoBehaviour, UberLogger.ILogger
         // PauseOnError  = ToggleClamped(PauseOnError, "Pause On Error", toolbarStyle);
         ShowTimes = ToggleClamped(ShowTimes, "Show Times", toolbarStyle);
 
-        var buttonSize = toolbarStyle.CalcSize(new GUIContent("T")).y;
+        float buttonSize = toolbarStyle.CalcSize(new GUIContent("T")).y;
         GUILayout.FlexibleSpace();
 
-        var showErrors = ToggleClamped(ShowErrors, new GUIContent(NoErrors.ToString(), SmallErrorIcon), toolbarStyle, GUILayout.Height(buttonSize));
-        var showWarnings = ToggleClamped(ShowWarnings, new GUIContent(NoWarnings.ToString(), SmallWarningIcon), toolbarStyle, GUILayout.Height(buttonSize));
-        var showMessages = ToggleClamped(ShowMessages, new GUIContent(NoMessages.ToString(), SmallMessageIcon), toolbarStyle, GUILayout.Height(buttonSize));
+        bool showErrors = ToggleClamped(ShowErrors, new GUIContent(NoErrors.ToString(), SmallErrorIcon), toolbarStyle, GUILayout.Height(buttonSize));
+        bool showWarnings = ToggleClamped(ShowWarnings, new GUIContent(NoWarnings.ToString(), SmallWarningIcon), toolbarStyle, GUILayout.Height(buttonSize));
+        bool showMessages = ToggleClamped(ShowMessages, new GUIContent(NoMessages.ToString(), SmallMessageIcon), toolbarStyle, GUILayout.Height(buttonSize));
         //If the errors/warning to show has changed, clear the selected message
         if(showErrors!=ShowErrors || showWarnings!=ShowWarnings || showMessages!=ShowMessages)
         {
@@ -205,7 +205,7 @@ public class UberLoggerAppWindow : MonoBehaviour, UberLogger.ILogger
     /// </summary>
     void DrawChannels()
     {
-        var channels = GetChannels();
+        List<string> channels = GetChannels();
         int currentChannelIndex = 0;
         for(int c1=0; c1<channels.Count; c1++)
         {
@@ -250,10 +250,10 @@ public class UberLoggerAppWindow : MonoBehaviour, UberLogger.ILogger
     /// </summary>
     public void DrawLogList()
     {
-        var oldColor = GUI.backgroundColor;
+        Color oldColor = GUI.backgroundColor;
 
         LogListScrollPosition = GUILayout.BeginScrollView(LogListScrollPosition);
-        var maxLogPanelHeight = WindowRect.height;
+        float maxLogPanelHeight = WindowRect.height;
                 
         float buttonY = 0;
         float buttonHeight = LogLineStyle1.CalcSize(new GUIContent("Test")).y;
@@ -266,10 +266,10 @@ public class UberLoggerAppWindow : MonoBehaviour, UberLogger.ILogger
         }
 
         int drawnButtons = 0;
-        var logLineStyle = LogLineStyle1;
+        GUIStyle logLineStyle = LogLineStyle1;
         for(int c1=0; c1<LogInfo.Count; c1++)
         {
-            var log = LogInfo[c1];
+            LogInfo log = LogInfo[c1];
             if(ShouldShowLog(filterRegex, log))
             {
                 drawnButtons++;
@@ -287,7 +287,7 @@ public class UberLoggerAppWindow : MonoBehaviour, UberLogger.ILogger
                         logLineStyle = (drawnButtons%2==0) ? LogLineStyle1 : LogLineStyle2;
                     }
                 
-                    var showMessage = log.Message;
+                    string showMessage = log.Message;
 
                     //Make all messages single line
                     showMessage = showMessage.Replace(UberLogger.Logger.UnityInternalNewLine, " ");
@@ -296,7 +296,7 @@ public class UberLoggerAppWindow : MonoBehaviour, UberLogger.ILogger
                         showMessage = log.GetRelativeTimeStampAsString() + ": " + showMessage; 
                     }
 
-                    var content = new GUIContent(showMessage, GetIconForLog(log));
+                    GUIContent content = new GUIContent(showMessage, GetIconForLog(log));
                     if(GUILayout.Button(content, logLineStyle, GUILayout.Height(buttonHeight)))
                     {
                         //Select a message, or jump to source if it's double-clicked
@@ -335,17 +335,17 @@ public class UberLoggerAppWindow : MonoBehaviour, UberLogger.ILogger
     /// </summary>
     public void DrawLogDetails()
     {
-        var oldColor = GUI.backgroundColor;
+        Color oldColor = GUI.backgroundColor;
         SelectedMessage = Mathf.Clamp(SelectedMessage, 0, LogInfo.Count);
         if(LogInfo.Count>0 && SelectedMessage>=0)
         {
             LogDetailsScrollPosition = GUILayout.BeginScrollView(LogDetailsScrollPosition);
-            var log = LogInfo[SelectedMessage];
-            var logLineStyle = LogLineStyle1;
+            LogInfo log = LogInfo[SelectedMessage];
+            GUIStyle logLineStyle = LogLineStyle1;
             for(int c1=0; c1<log.Callstack.Count; c1++)
             {
-                var frame = log.Callstack[c1];
-                var methodName = frame.GetFormattedMethodNameWithFileName();
+                LogStackFrame frame = log.Callstack[c1];
+                string methodName = frame.GetFormattedMethodNameWithFileName();
                 if(!String.IsNullOrEmpty(methodName))
                 {
                     if(c1==SelectedCallstackFrame)
@@ -389,7 +389,7 @@ public class UberLoggerAppWindow : MonoBehaviour, UberLogger.ILogger
     {
         GUILayout.BeginHorizontal();
         LabelClamped("Filter Regex", GUI.skin.label);
-        var filterRegex = GUILayout.TextArea(FilterRegex);
+        string filterRegex = GUILayout.TextArea(FilterRegex);
         if(ButtonClamped("Clear", GUI.skin.button))
         {
             filterRegex = "";
@@ -408,19 +408,21 @@ public class UberLoggerAppWindow : MonoBehaviour, UberLogger.ILogger
 
     List<string> GetChannels()
     {
-        var categories = new HashSet<string>();
-        foreach(var logInfo in LogInfo)
+        List<string> categories = new List<string>();
+        //foreach(var logInfo in LogInfo)
+        for (int i = 0, max = LogInfo.Count; i < max; ++i)
         {
+            LogInfo logInfo = LogInfo[i];
             if(!String.IsNullOrEmpty(logInfo.Channel) && !categories.Contains(logInfo.Channel))
             {
                 categories.Add(logInfo.Channel);
             }
         }
         
-        var channelList = new List<string>();
+        List<string> channelList = new List<string>();
         channelList.Add("All");
         channelList.Add("No Channel");
-        channelList.AddRange(categories);
+        channelList.AddRange(categories.ToArray());
         return channelList;
     }
 
@@ -430,9 +432,9 @@ public class UberLoggerAppWindow : MonoBehaviour, UberLogger.ILogger
         //Set up the resize collision rect
         // float offset = GUI.skin.window.border.bottom;
         float offset = 0;
-        var resizerRect = new Rect(0, CurrentTopPaneHeight+offset, WindowRect.width, 5f);
+        Rect resizerRect = new Rect(0, CurrentTopPaneHeight+offset, WindowRect.width, 5f);
 
-        var oldColor = GUI.color;
+        Color oldColor = GUI.color;
         GUI.color = SizerLineColour; 
         GUI.DrawTexture(resizerRect, Texture2D.whiteTexture);
         GUI.color = oldColor;
